@@ -22,12 +22,13 @@ endif
 
 hub = ""
 tag = ""
-ifneq ("x${HUB}", "x")
-	hub = -hub ${HUB}
+
+ifneq ($(strip $(HUB)),)
+	hub =-hub ${HUB}
 endif
 
-ifneq ("x${TAG}", "x")
-	tag = -tag ${TAG}
+ifneq ($(strip $(TAG)),)
+	tag =-tag ${TAG}
 endif
 
 .PHONY: setup
@@ -52,15 +53,19 @@ clean:
 	@bazel clean
 
 .PHONY: test
-test: build
+test:
 	@bazel test ${BUILD_FLAGS} //...
+
+.PHONY: e2etest
+e2etest:
+	@bazel run //test/integration -- --logtostderr ${TESTOPTS} ${hub} ${tag}
 
 .PHONY: coverage
 coverage:
 	@bin/codecov.sh
 
 .PHONY: lint
-lint: build
+lint:
 	@bin/check.sh
 
 .PHONY: gazelle
