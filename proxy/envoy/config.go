@@ -157,6 +157,37 @@ func buildClusters(env proxy.Environment, node proxy.Node) Clusters {
 		clusters = append(clusters, buildMixerCluster(env.Mesh))
 	}
 
+	// TODO: This is a total hack and a short term solution to allow VMs to communicate with
+	// K8S pods via K8S ingress. A more elegant solution involves tagging services with the
+	// network boundaries they belong to, maintaining a global map of network name and its
+	// ingress router, and then using this info to appropriately set the destination hosts
+	// in the clusters. Until then, this hack will atleast allow services on VMs to invoke
+	// other services irrespective of their locality via the k8s ingress, as long as
+	// routes are configured on the ingress.
+
+	// the assumption here is that the size of instances array is always 1
+	// which should hold true for per pod/vm sidecar model
+	if instances != nil && instances[0].OutboundGateway != "" {
+		//overwrite the destination cluster IPs to the one pointed to by ingress.
+		referenceCluster := buildCluster(instances[0].OutboundGateway, "dummy", env.Mesh.ConnectTimeout)
+		for _, c := range clusters {
+			if c.Type == ClusterTypeOriginalDST || !c.outbound {
+				// Don't overwrite orig DST or inbound clusters.
+				// This means VMs cannot access headless services
+				// in Kubernetes
+				continue
+			}
+			c.Type = referenceCluster.Type
+			c.LbType = referenceCluster.LbType
+			c.Hosts = referenceCluster.Hosts
+			if c.SSLContext != nil {
+				// overwrite the auth setting as well because ingress does not support mTLS
+				// however move to https (assume that ingress has https setup?): unreliable
+				c.SSLContext = &SSLContextExternal{}
+			}
+		}
+	}
+
 	return clusters
 }
 

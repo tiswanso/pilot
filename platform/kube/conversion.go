@@ -43,6 +43,12 @@ const (
 
 	// IstioURIPrefix is the URI prefix in the Istio service account scheme
 	IstioURIPrefix = "spiffe"
+
+	// KubernetesIngressAnnotation is used to specify the hostname of the load balancer or ingress that will
+	// receive all HTTP (and in future TCP) connections from the VM into the K8S cluster. This is needed
+	// in environments where kubernetes pods and VMs outside kubernetes are on separate networks with no
+	// direct access.
+	KubernetesIngressAnnotation = "alpha.istio.io/kubernetes-ingress"
 )
 
 func convertLabels(obj meta_v1.ObjectMeta) model.Labels {
@@ -240,4 +246,13 @@ func convertProbesToPorts(t *v1.PodSpec) (model.PortList, error) {
 	sort.Slice(mgmtPorts, func(i, j int) bool { return mgmtPorts[i].Port < mgmtPorts[j].Port })
 
 	return mgmtPorts, errs
+}
+
+// getEndpointOutboundGateway retrieves the Outbound gateway annotation
+// value for an endpoint.
+func getEndpointOutboundGateway(ep *v1.Endpoints) string {
+	if ep.Annotations != nil {
+		return ep.Annotations[KubernetesIngressAnnotation]
+	}
+	return ""
 }

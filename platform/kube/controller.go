@@ -291,6 +291,7 @@ func (c *Controller) Instances(hostname string, ports []string,
 	// TODO: single port service missing name
 	for _, item := range c.endpoints.informer.GetStore().List() {
 		ep := *item.(*v1.Endpoints)
+		outboundGateway := getEndpointOutboundGateway(&ep)
 		if ep.Name == name && ep.Namespace == namespace {
 			var out []*model.ServiceInstance
 			for _, ss := range ep.Subsets {
@@ -321,6 +322,7 @@ func (c *Controller) Instances(hostname string, ports []string,
 								Labels:           labels,
 								AvailabilityZone: az,
 								ServiceAccount:   sa,
+								OutboundGateway:  outboundGateway,
 							})
 						}
 					}
@@ -337,6 +339,7 @@ func (c *Controller) HostInstances(addrs map[string]bool) []*model.ServiceInstan
 	var out []*model.ServiceInstance
 	for _, item := range c.endpoints.informer.GetStore().List() {
 		ep := *item.(*v1.Endpoints)
+		outboundGateway := getEndpointOutboundGateway(&ep)
 		for _, ss := range ep.Subsets {
 			for _, ea := range ss.Addresses {
 				if addrs[ea.IP] {
@@ -370,6 +373,7 @@ func (c *Controller) HostInstances(addrs map[string]bool) []*model.ServiceInstan
 							Labels:           labels,
 							AvailabilityZone: az,
 							ServiceAccount:   sa,
+							OutboundGateway:  outboundGateway,
 						})
 					}
 				}

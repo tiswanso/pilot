@@ -173,12 +173,25 @@ type LabelsCollection []Labels
 //      --> NetworkEndpoint(172.16.0.2:8888), Service(catalog.myservice.com), Labels(foo=bar)
 //      --> NetworkEndpoint(172.16.0.3:8888), Service(catalog.myservice.com), Labels(kitty=cat)
 //      --> NetworkEndpoint(172.16.0.4:8888), Service(catalog.myservice.com), Labels(kitty=cat)
+//
+// In certain environments where the mesh spans endpoints in multiple isolated networks, service
+// instances in one network need to be able to reach instances in the other network through a
+// gateway router for the destination network. The OutboundGateway field indicates the gateway
+// hostname (and port) that should be the destination for all outbound connections from an endpoint.
+// A concrete use for this feature is when we need to span Istio across Kubernetes and a set of VMs.
+// Typical installations have a separate overlay for Pod network, that cannot be reached outside the
+// Kubernetes cluster. In such cases, VMs trying to reach services hosted on Kubernetes must enter
+// the cluster through the Kubernetes Ingress. By specifying the outbound gateway for all endpoints
+// outside Kubernetes, requests/connections from VMs would automatically land at the Ingress, which
+// would then route the request to the appropriate service inside the Kubernetes cluster based on
+// path, host header, etc.
 type ServiceInstance struct {
 	Endpoint         NetworkEndpoint `json:"endpoint,omitempty"`
 	Service          *Service        `json:"service,omitempty"`
 	Labels           Labels          `json:"labels,omitempty"`
 	AvailabilityZone string          `json:"az,omitempty"`
 	ServiceAccount   string          `json:"serviceaccount,omitempty"`
+	OutboundGateway  string          `json:"outbound_gateway,omitempty"`
 }
 
 // ServiceDiscovery enumerates Istio service instances.
