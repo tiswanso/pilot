@@ -393,6 +393,7 @@ func (ds *DiscoveryService) ListEndpoints(request *restful.Request, response *re
 		}
 		ds.sdsCache.updateCachedDiscoveryResponse(key, out)
 	}
+	glog.V(2).Infof("Endpoints Key: %s", key)
 	writeResponse(response, out)
 }
 
@@ -423,6 +424,7 @@ func (ds *DiscoveryService) ListClusters(request *restful.Request, response *res
 		}
 		ds.cdsCache.updateCachedDiscoveryResponse(key, out)
 	}
+	glog.V(2).Infof("Clusters Key: %s", key)
 	writeResponse(response, out)
 }
 
@@ -445,6 +447,7 @@ func (ds *DiscoveryService) ListListeners(request *restful.Request, response *re
 		}
 		ds.ldsCache.updateCachedDiscoveryResponse(key, out)
 	}
+	glog.V(2).Infof("Listeners Key: %s", key)
 	writeResponse(response, out)
 }
 
@@ -469,6 +472,7 @@ func (ds *DiscoveryService) ListRoutes(request *restful.Request, response *restf
 		}
 		ds.rdsCache.updateCachedDiscoveryResponse(key, out)
 	}
+	glog.V(2).Infof("Routes Key: %s", key)
 	writeResponse(response, out)
 }
 
